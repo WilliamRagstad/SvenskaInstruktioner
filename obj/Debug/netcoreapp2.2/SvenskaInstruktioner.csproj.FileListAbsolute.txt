@@ -1,0 +1,11 @@
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp2.2\SvenskaInstruktioner.deps.json
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp2.2\SvenskaInstruktioner.runtimeconfig.json
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp2.2\SvenskaInstruktioner.runtimeconfig.dev.json
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp2.2\SvenskaInstruktioner.dll
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp2.2\SvenskaInstruktioner.pdb
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.csprojResolveAssemblyReference.cache
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.csproj.CoreCompileInputs.cache
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.AssemblyInfoInputs.cache
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.AssemblyInfo.cs
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.dll
+C:\Users\ewr0327\Google Drive (william.ragstad@gmail.com)\- Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp2.2\SvenskaInstruktioner.pdb
