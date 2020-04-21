@@ -130,7 +130,7 @@ namespace SvenskaInstruktioner
                     #region Strings, numbers and literals
                     else if (ct.Trim() != string.Empty)
                     {
-                        bool ctIsString = ct.StartsWith("\"") && ct.EndsWith("\"");
+                        bool ctIsString = ( ct.StartsWith("\"") && ct.EndsWith("\"") ) || ( ct.StartsWith("'") && ct.EndsWith("'") );
                         // Literal
                         double numericValue;
                         if (!ctIsString && double.TryParse(ct.Replace(".", ","), out numericValue))
@@ -139,7 +139,12 @@ namespace SvenskaInstruktioner
                         }
                         else if (ctIsString)
                         {
-                            addToken(TokenType.Literal, ct.TrimStart('"').TrimEnd('"'), typeof(string));
+                            if (ct.StartsWith("\""))
+                                addToken(TokenType.String, ct.TrimStart('"').TrimEnd('"'), typeof(string));
+                            else if (ct.StartsWith("'"))
+                                addToken(TokenType.String, ct.TrimStart('\'').TrimEnd('\''), typeof(string));
+                            else
+                                Error_General("Fel formatering för sträng på rad " + line + " kolumn " + column);
                         }
                         else
                         {
@@ -209,7 +214,10 @@ namespace SvenskaInstruktioner
                 }
                 else
                 {
-                    ct += cc;
+                    if (isString)
+                        ct += source[i];    // Add raw character
+                    else 
+                        ct += cc;           // Add the formatted character
                 }
             }
 
@@ -247,7 +255,7 @@ namespace SvenskaInstruktioner
             {
                 List<Token> expressions = new List<Token>();
                 Token t = nextToken();
-                while(t.Type == TokenType.Expression || t.Type == TokenType.Literal || t.Type == TokenType.Separator)
+                while(t.Type == TokenType.Expression || t.Type == TokenType.Literal || t.Type == TokenType.String || t.Type == TokenType.Separator)
                 {
                     expressions.Add(t);
                     t = nextToken();
@@ -351,7 +359,7 @@ namespace SvenskaInstruktioner
                 }
                 else
                 {
-                    Error_UnexpectedToken(ct, "kontext");
+                    Error_UnexpectedToken(ct, "instruktion med kontext");
                     return ExitFlag.SyntaxError;
                 }
             }
@@ -418,6 +426,11 @@ namespace SvenskaInstruktioner
                         result = 0;
                         return DataType.Undefined;
                     }
+                }
+                else if (e.Type == TokenType.String)
+                {
+                    result = e.Value;
+                    return DataType.String;
                 }
                 else
                 {

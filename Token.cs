@@ -9,6 +9,7 @@ namespace SvenskaInstruktioner
         Undefined,
         Assignment,
         Expression,
+        String,
         Action,
         Literal,
         Comment,

@@ -6,8 +6,8 @@ SÄTT Z TILL -2 * X
 Sätt k lika med 4+2
 Sätt k lika med 5
 
-k plus "Halloj!"        # k = "4Halloj!"
-k plus '!!'             # k = "4Halloj!!!"
+k plus "Halloj!"        # k = "5Halloj!"
+k plus '!!'             # k = "5Halloj!!!"
 
 om k är 5 och 5 {
     # ...
