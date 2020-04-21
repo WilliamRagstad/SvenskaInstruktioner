@@ -1,19 +1,30 @@
 SÄTT A TILL (10 MINUS 12 PLUS 5) MULTIPLICERAT MED 3
-SÄTT X TILL (10 MINUS (12 PLUS 5)) MULTIPLICERAT MED 3 DIVIDERAT MED 1 OCH SÄTT Y TILL -6.2 # Stöd för flera instruktioner
+SÄTT X TILL (10 MINUS (12 PLUS ((5)))) MULTIPLICERAT MED 3 DIVIDERAT MED 1 OCH SÄTT Y TILL -6.2 # Stöd för flera instruktioner
     # på en och samma rad!
-SÄTT Z TILL -2
+SÄTT Z TILL -2 * X
 
-Sätt k lika med 4
+Sätt k lika med 4+2
+Sätt k lika med 5
 
 k plus "Halloj!"        # k = "4Halloj!"
 k plus '!!'             # k = "4Halloj!!!"
 
-om k är 5 och 5:
+om k är 5 och 5 {
     # ...
+}
 
-FUNKTION G(X,Y):
+FUNKTION G(X,Y) {
+
+}
 
 
-om 12:  # alltid sant
 
-om 0:   # alltid falskt
+om 12
+{
+    # alltid sant
+}
+
+om inte 0
+{
+    # alltid falskt
+}

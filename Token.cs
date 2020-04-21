@@ -15,6 +15,7 @@ namespace SvenskaInstruktioner
         Separator,
         Equal,
         Indent,
+        LineBreak,
         And,
         Or,
         To,
@@ -22,7 +23,8 @@ namespace SvenskaInstruktioner
         If,
         Then,
         Else,
-        BlockStart
+        BlockStart,
+        BlockEnd
     }
 
     class Token
@@ -37,15 +39,27 @@ namespace SvenskaInstruktioner
             Column = col;
         }
 
-        public global::System.String Name { get; }
+        public string Name { get; }
         public TokenType Type { get; }
-        public global::System.Object Value { get; }
+        public object Value { get; }
         public Type ValueType { get; }
-        public global::System.Int32 Line { get; }
-        public global::System.Int32 Column { get; }
+        public int Line { get; }
+        public int Column { get; }
 
-        public override string ToString() => (!string.IsNullOrEmpty(Name) ? Name : "") + (!string.IsNullOrEmpty(Name) && Value != null && Name != Value.ToString() && ValueType != typeof(string) ? " | " : "") + (Value != null && Name != Value.ToString() && ValueType != typeof(string) ? Value : "");
-
+        public override string ToString()
+        {
+            string result = "";
+            if (!string.IsNullOrEmpty(Name))
+            {
+                result += Name;
+                if (Value != null && !Value.Equals(Name) && ValueType != typeof(Double) && ValueType != typeof(string)) // && ValueType != typeof(string)
+                {
+                    result += " | " + Value;
+                }
+            }
+            else if (Value != null) result += Value;
+            return result;
+        }
         public static Token Empty => new Token("Empty", TokenType.Undefined, null, null, -1, -1);
     }
 }
