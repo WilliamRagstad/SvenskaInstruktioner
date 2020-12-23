@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace SvenskaInstruktioner
+namespace SvenskaInstruktioner.Model
 {
     class BoundScope
     {
         private Dictionary<string, Variable> _variables = new Dictionary<string, Variable>();
         public readonly BoundScope Parent;
 
-        public BoundScope(BoundScope parent)
+        public string Name { get; }
+
+        public BoundScope(BoundScope parent = null, string name = null)
         {
             _variables = new Dictionary<string, Variable>();
             Parent = parent;
+            Name = name;
         }
 
         public bool TryDeclare(Variable variable)
@@ -52,5 +55,7 @@ namespace SvenskaInstruktioner
         }
 
         public ImmutableArray<Variable> GetDeclaredVariables() => _variables.Values.ToImmutableArray();
+
+        public override string ToString() => '[' + (Name != null ? Name : "BoundScope") + ']';
     }
 }

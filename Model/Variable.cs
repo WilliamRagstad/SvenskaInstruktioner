@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SvenskaInstruktioner
+namespace SvenskaInstruktioner.Model
 {
     enum DataType
     {
         Undefined,
         Number,
-        String
+        String,
+        Boolean
     }
     class Variable
     {

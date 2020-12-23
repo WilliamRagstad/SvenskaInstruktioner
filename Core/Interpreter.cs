@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using SvenskaInstruktioner.Model;
+using SvenskaInstruktioner.Exception;
+using SvenskaInstruktioner.Util;
 
-namespace SvenskaInstruktioner
+namespace SvenskaInstruktioner.Core
 {
     enum ExitFlag
     {
@@ -14,37 +17,46 @@ namespace SvenskaInstruktioner
     }
     class Interpreter
     {
-        public string SourceFile { get; }
+        public string EntryFile { get; }
 
         private char EOF = '\0';
 
-        private char[] orderOfOperation = {
-            '^', '/', '*', '-', '+'
-        };
-        private char[] literals = { '(', ')', '{', '}', ',' };
+        private char[] orderOfOperation = { '^', '/', '*', '-', '+' };
+        private char[] separators = { '(', ')', '{', '}', ',' };
         private bool isOperation(char c) => orderOfOperation.Contains(c);
-        private bool isLiteral(char c) => literals.Contains(c);
+        private bool isLiteral(char c) => separators.Contains(c);
 
         private BoundScope globalScope;
-        private BoundScope currentScope;
 
-        public Interpreter(string file)
+        public Interpreter(string entryfile)
         {
-            SourceFile = file;
+            EntryFile = entryfile;
         }
 
         public ExitFlag Interpret(bool debug = false)
         {
             List<Token> tokens = Tokenize();
             if (debug) PrintTokens(tokens);
-            ExitFlag f = Execute(tokens, debug);
+
+            globalScope = new BoundScope(null, "Global");
+            ExitFlag f;
+            try
+            {
+                f = Execute(tokens, globalScope, debug);
+            }
+            catch(FatalErrorException e)
+            {
+                Functions.WriteLineColor(e.Message, ConsoleColor.Red);
+                Functions.WriteLineColor(e.StackTrace, ConsoleColor.DarkYellow);
+                f = ExitFlag.FatalError;
+            }
             return f;
         }
 
         private List<Token> Tokenize()
         {
             List<Token> tokens = new List<Token>();
-            string source = File.ReadAllText(SourceFile) + EOF;
+            string source = File.ReadAllText(EntryFile) + EOF;
             string ct = string.Empty;
             char nc = '\0';
             bool isString = false;
@@ -53,7 +65,7 @@ namespace SvenskaInstruktioner
             int line = 1;
             int column = -1; // column ++ makes it 0
 
-            void addToken(TokenType type, object value, Type valueType) {
+            void addToken(TokenType type, object value = null, Type valueType = null) {
                 if (type == TokenType.Comment) { ct = Functions.CleanComment(ct); value = ct; }
                 tokens.Add(new Token(ct, type, value, valueType, line, column > 0 ? column : 0 ));
                 ct = string.Empty;
@@ -82,12 +94,12 @@ namespace SvenskaInstruktioner
 
                 if ((cc == ' ' || cc == '\t' || cc == '\n' || cc == '\r' ||
                     isLiteral(cc) ||
-                    isOperation(cc)
+                    isOperation(cc) || cc == '='
                     ) && !isString || cc == EOF)
                 {
                     #region Discarded tokens
-                    if (ct == "" && cc == '\t') addToken(TokenType.Indent, null, null);
-                    if (ct == "med" || ct == "än") { ct = string.Empty; continue; }       // Ex: a multiplicerat med b <=> a multiplicerat b
+                    if (ct == "" && cc == '\t') addToken(TokenType.WhiteSpace, "\\t");
+                    if (ct == "med" || ct == "än" || ct == "till") { ct = string.Empty; continue; }       // Ex: a multiplicerat med b <=> a multiplicerat b
                     #endregion
                     #region Comments
                     if (isComment) {
@@ -104,28 +116,26 @@ namespace SvenskaInstruktioner
                     }
                     #endregion
                     #region Named tokens
-                    else if (ct == "är")      addToken(TokenType.Is, null, null);
-                    else if (ct == "om")      addToken(TokenType.If, null, null);
-                    else if (ct == "så")      addToken(TokenType.Then, null, null);
-                    else if (ct == "annars")  addToken(TokenType.Else, null, null);
-                    else if (ct == "sant")    addToken(TokenType.Expression, true, null);
-                    else if (ct == "falskt")  addToken(TokenType.Expression, false, null);
-                    else if (ct == "sätt")    addToken(TokenType.Assignment, null, null);
-                    else if (ct == "lika"      || ct == "==")               addToken(TokenType.Equal, null, null);
-                    else if (ct == "till" )  addToken(TokenType.To, null, null);
-                    else if (ct == "och"  )                addToken(TokenType.And, null, null);
-                    else if (ct == "eller")                addToken(TokenType.Or, null, null);
-                    else if (ct == "plus"      || ct == "adderat"      )  addToken(TokenType.Expression, '+', null);
-                    else if (ct == "minus"     || ct == "subtraherat"  )  addToken(TokenType.Expression, '-', null);
-                    else if (ct == "genom"     || ct == "dividerat"    )  addToken(TokenType.Expression, '/', null);
-                    else if (ct == "gånger"    || ct == "multiplicerat")  addToken(TokenType.Expression, '*', null);
-                    else if (ct == "inte"      || ct == "icke"         )  addToken(TokenType.Expression, '!', null);
-                    else if (ct == "mindre" )  addToken(TokenType.Expression, '<', null);
-                    else if (ct == "större" )  addToken(TokenType.Expression, '>', null);
-                    else if (ct == "upphöjt")  addToken(TokenType.Expression, '^', null);
-
-                    else if (ct == "inkludera")  addToken(TokenType.Action, null, null);
-                    else if (ct == "funktion")   addToken(TokenType.Action, null, null);
+                    else if (ct == "är")      addToken(TokenType.Is);
+                    else if (ct == "om")      addToken(TokenType.If);
+                    else if (ct == "så")      addToken(TokenType.Then);
+                    else if (ct == "annars")  addToken(TokenType.Else);
+                    else if (ct == "sant")    addToken(TokenType.Boolean, true);
+                    else if (ct == "falskt")  addToken(TokenType.Boolean, false);
+                    else if (ct == "och")     addToken(TokenType.And);
+                    else if (ct == "eller")   addToken(TokenType.Or);
+                    else if (ct == "klar" || ct == "klart" || ct == "färdig" || ct == "färdigt" || ct == "slut") addToken(TokenType.Done);
+                    else if (ct == "mindre")  addToken(TokenType.Expression, '<');
+                    else if (ct == "större")  addToken(TokenType.Expression, '>');
+                    else if (ct == "upphöjt") addToken(TokenType.Expression, '^');
+                    else if (ct == "lika")    addToken(TokenType.Equal, '=');
+                    else if (ct == "plus"      || ct == "adderat"      )  addToken(TokenType.Expression, '+');
+                    else if (ct == "minus"     || ct == "subtraherat"  )  addToken(TokenType.Expression, '-');
+                    else if (ct == "genom"     || ct == "dividerat"    )  addToken(TokenType.Expression, '/');
+                    else if (ct == "gånger"    || ct == "multiplicerat")  addToken(TokenType.Expression, '*');
+                    else if (ct == "inte"      || ct == "icke")  addToken(TokenType.Expression, '!');
+                    else if (ct == "använd") addToken(TokenType.Action); // använd * från "./mattematik"
+                    else if (ct == "konstant") addToken(TokenType.Action);  // konstant pi = 3.1415926535897932384626433832
                     #endregion
                     #region Strings, numbers and literals
                     else if (ct.Trim() != string.Empty)
@@ -163,13 +173,11 @@ namespace SvenskaInstruktioner
                         {
                             case '(':
                             case ')':
-                                addToken(TokenType.Separator, cc, null);
+                                addToken(TokenType.Parenthesis, cc, null);
                                 break;
                             case '{':
-                                addToken(TokenType.BlockStart, cc, null);
-                                break;
                             case '}':
-                                addToken(TokenType.BlockEnd, cc, null);
+                                addToken(TokenType.CurlyBrackets, cc, null);
                                 break;
                             case ',':
                                 addToken(TokenType.Separator, cc, null);
@@ -183,9 +191,9 @@ namespace SvenskaInstruktioner
                             case '+':
                             case '/':
                             case '*':
-                            case '!':
                             case '<':
                             case '>':
+                            case '!':
                             case '^': addToken(TokenType.Expression, cc, null); break;
 
                             case '-':
@@ -195,16 +203,16 @@ namespace SvenskaInstruktioner
                                     addToken(TokenType.Expression, cc, null);
                                 break;
 
-                            case '|': addToken(TokenType.Or, null, null); break;
-                            case '&': addToken(TokenType.And, null, null); break;
-                            case '=': if (nc != '=') addToken(TokenType.To, null, null); break;
+                            case '|': addToken(TokenType.Or, cc, null); break;
+                            case '&': addToken(TokenType.And, cc, null); break;
+                            case '=': addToken(TokenType.Equal, cc, null); break;
                         }
                     }
                     else
                     {
                         if (cc == '\n')
                         {
-                            addToken(TokenType.LineBreak, null, null);
+                            addToken(TokenType.WhiteSpace, "\\n", null);
                             column = -1; line++;
                             continue;
                         }
@@ -224,11 +232,18 @@ namespace SvenskaInstruktioner
             return tokens;
         }
 
-        private ExitFlag Execute(List<Token> tokens, bool debug = false)
+        private AST Parse(List<Token> tokens, bool debug = false)
         {
-            globalScope = new BoundScope(null);
-            currentScope = globalScope;
+            AST ast = new AST();
 
+
+
+            return ast;
+        }
+
+        private ExitFlag Execute(List<Token> tokens, BoundScope parentScope, bool debug = false)
+        {
+            BoundScope localScope = new BoundScope(parentScope);
             #region Local Functions
             int i = 0;
             Token nextToken()
@@ -255,7 +270,7 @@ namespace SvenskaInstruktioner
             {
                 List<Token> expressions = new List<Token>();
                 Token t = nextToken();
-                while(t.Type == TokenType.Expression || t.Type == TokenType.Literal || t.Type == TokenType.String || t.Type == TokenType.Separator)
+                while(t.Type == TokenType.Expression || t.Type == TokenType.Boolean || t.Type == TokenType.Literal || t.Type == TokenType.String || t.Type == TokenType.Parenthesis)
                 {
                     expressions.Add(t);
                     t = nextToken();
@@ -263,6 +278,39 @@ namespace SvenskaInstruktioner
                 i--;
                 if (expressions.Count == 0) { Error_UnexpectedToken(tokens[i], "Uttryck"); return null; }
                 return expressions;
+            }
+            List<Token> getStatement()
+            {
+                List<Token> statement = new List<Token>();
+                Token t = nextToken();
+                while (t.Type == TokenType.Expression || t.Type == TokenType.Boolean || t.Type == TokenType.Literal || t.Type == TokenType.String || t.Type == TokenType.Parenthesis || t.Type == TokenType.Separator || t.Type == TokenType.Is || t.Type == TokenType.And || t.Type == TokenType.Or || t.Type == TokenType.Equal)
+                {
+                    statement.Add(t);
+                    t = nextToken();
+                }
+                i--;
+                if (statement.Count == 0) { Error_UnexpectedToken(tokens[i], "påstående"); return null; }
+                return statement;
+            }
+            List<Token> getBranch()
+            {
+                List<Token> block = new List<Token>();
+                int scope = 0;
+                Token t = nextToken();
+                if (t.Type != TokenType.Then) { Error_UnexpectedToken(tokens[i], "start av kod block"); return null; }
+                t = nextToken(); // Börja med nästa token innanför kodblocket
+                while (t != null)
+                {
+                    if (t.Type == TokenType.Done && scope == 0) break;
+                    else if (t.Type == TokenType.Then) scope++;
+                    else if (t.Type == TokenType.Done) scope--;
+
+                    if (t.Type != TokenType.WhiteSpace)
+                        block.Add(t);
+                    t = nextToken();
+                }
+                if (block.Count == 0) { Error_UnexpectedToken(tokens[i], "icke-tomt kod block"); return null; }
+                return block;
             }
             #endregion
 
@@ -273,88 +321,94 @@ namespace SvenskaInstruktioner
             }
 
             Token ct = Token.Empty;
+            object result = null;
+            DataType dataType = DataType.Undefined;
             while (ct != null)
             {
                 ct = nextToken();
                 if (ct == null) break;
-                else if (ct.Type == TokenType.LineBreak) continue;
-                else if (ct.Type == TokenType.And) continue;    // Should this be skipped?
-                else if (ct.Type == TokenType.Assignment)
+                else if (ct.Type == TokenType.WhiteSpace || ct.Type == TokenType.And) continue; // Should and be skipped?
+                else if (ct.Type == TokenType.Literal)
                 {
-                    Token variable = nextToken();
-                    if (variable == null) { Error_MissingToken("variabel namn efter", ct); return ExitFlag.SyntaxError; }
-                    if (variable.Type != TokenType.Literal) { Error_UnexpectedToken(variable, "Variabelnamn"); return ExitFlag.SyntaxError; }
+                    // functionName param1 param2 =
+                    //      ...
+                    // # or
+                    // variable = ...
 
-                    Token equalSign = nextToken();
-                    if (equalSign.Type != TokenType.Equal && equalSign.Type != TokenType.To) { Error_UnexpectedToken(equalSign, "Lika med, till eller ="); return ExitFlag.SyntaxError; }
+                    // variable == variable()
 
-                    List<Token> expression = getExpression();
+                    Token literal = ct;
 
-                    DataType dataType = EvaluateExpression(expression, out object result);
-
-                    if (dataType != DataType.Undefined)
+                    List<Token> parameters = new List<Token>();
+                    Token nxt = nextToken();
+                    while (nxt.Type != TokenType.Equal)
                     {
-                        Variable v = new Variable(variable.Name, result, dataType);
-                        if (currentScope.TryDeclare(v))
+                        if (nxt.Type != TokenType.Literal && nxt.Type != TokenType.Expression)
                         {
-                            if (debug) Functions.WriteLineVariableMessage(ct.Line, ct.Column, "Variable Initialization", v, ConsoleColor.Cyan, ConsoleColor.Yellow);
+                            Error_UnexpectedToken(nxt, "parameter lista");
+                            return ExitFlag.SyntaxError;
                         }
-                        else
+                        parameters.Add(nxt);
+                        nxt = nextToken();
+                    }
+                    // nxt is an equal sign.
+
+                    if (parameters.Count > 0)
+                    {
+                        // Function declaration
+
+                    }
+                    else
+                    {
+                        // A parameterless function or variable initialization. Variables can be invoked as parameterless functions to return its value, but this is unrecommended and is assumed by the compiler.
+                        List<Token> expression = getExpression();
+                        dataType = EvaluateExpression(expression, localScope, out result);
+                        if (dataType != DataType.Undefined)
                         {
-                            if (currentScope.TryReassign(v))
+                            Variable v = new Variable(literal.Name, result, dataType);
+                            if (parentScope.TryDeclare(v))
                             {
-                                if (debug) Functions.WriteLineVariableMessage(ct.Line, ct.Column, "Variable Re-assignment", v, ConsoleColor.Cyan, ConsoleColor.Yellow);
+                                if (debug) Functions.WriteLineVariableMessage(ct.Line, ct.Column, "Variable Initialization", v, ConsoleColor.Cyan, ConsoleColor.Yellow);
                             }
                             else
                             {
-                                Error_FailedToDeclare(variable);
-                                return ExitFlag.SyntaxError;
+                                if (parentScope.TryReassign(v))
+                                {
+                                    if (debug) Functions.WriteLineVariableMessage(ct.Line, ct.Column, "Variable Re-assignment", v, ConsoleColor.Cyan, ConsoleColor.Yellow);
+                                }
+                                else
+                                {
+                                    Error_FailedToDeclare(literal);
+                                    return ExitFlag.SyntaxError;
+                                }
                             }
+                        }
+                        else
+                        {
+                            Error_UnexpectedToken(literal, "definierbart värde");
+                            return ExitFlag.SyntaxError;
+                        }
+                    }
+                }
+                else if (ct.Type == TokenType.If)
+                {
+                    List<Token> statement = getStatement(); 
+                    List<Token> branch = getBranch();
+                    dataType = EvaluateExpression(statement, localScope, out result);
+
+                    if (dataType != DataType.Undefined)
+                    {
+                        if ((dataType == DataType.Number && (double)result != 0) ||
+                            (dataType == DataType.String) ||
+                            (dataType == DataType.Boolean && (bool)result))
+                        {
+                            Execute(branch, localScope, debug);
                         }
                     }
                     else
                     {
-                        Error_UnexpectedToken(variable, "definierbart värde");
+                        Error_WithExpected("Ogiltigt påstående: " + Functions.TokenListToString(statement), "beräkneligt sanningsvärde");
                         return ExitFlag.SyntaxError;
-                    }
-                }
-                else if (ct.Type == TokenType.Literal)
-                {
-                    Token literal = ct;
-                    Token op = peekToken();
-                    switch (op.Type)
-                    {
-                        // X + 5
-                        case TokenType.Expression:
-                            // X = X + 5
-                            i--; // Move back to the literal
-                            List<Token> expression = getExpression();
-                            DataType dataType = EvaluateExpression(expression, out object result);
-                            if (dataType != DataType.Undefined)
-                            {
-                                Variable v = new Variable(literal.Name, result, dataType);
-                                if (currentScope.TryReassign(v))
-                                {
-                                    if (debug)
-                                    {
-                                        Functions.WriteLineVariableMessage(ct.Line, ct.Column, "Variable Modified", v, ConsoleColor.Cyan, ConsoleColor.Yellow);
-                                    }
-                                }
-                                else
-                                {
-                                    Error_Undefined(ct, "variable");
-                                    return ExitFlag.SyntaxError;
-                                }
-                            }
-                            else
-                            {
-                                return ExitFlag.SyntaxError;
-                            }
-                            break;
-                        // X bla bla bla
-                        default:
-                            Error_UnexpectedToken(ct, "action");
-                            return ExitFlag.SyntaxError;
                     }
                 }
                 else
@@ -380,7 +434,7 @@ namespace SvenskaInstruktioner
             Console.WriteLine("Tokens: " + tokens.Count);
             Console.WriteLine();
         }
-        private DataType EvaluateExpression(List<Token> expression, out object result)
+        private DataType EvaluateExpression(List<Token> expression, BoundScope localScope, out object result)
         {
             if (expression == null)
             {
@@ -391,13 +445,28 @@ namespace SvenskaInstruktioner
             if (expression.Count > 2)
             {
                 // Strip away wrapping separators
-                while (expression.Count(e => e.Type == TokenType.Separator) >= 2 &&
-                     expression[0].Type == TokenType.Separator && (char)expression[0].Value == '(' &&
-                     expression[expression.Count - 1].Type == TokenType.Separator && (char)expression[expression.Count - 1].Value == ')')
+                while (expression.Count(e => e.Type == TokenType.Parenthesis) >= 2 &&
+                     expression[0].Type == TokenType.Parenthesis && (char)expression[0].Value == '(' &&
+                     expression[expression.Count - 1].Type == TokenType.Parenthesis && (char)expression[expression.Count - 1].Value == ')')
                 {
                     // If the expression is wrapped with two parentathes, remove them (it's the same thing). This will otherwise cause a weird bug
                     expression.RemoveAt(0);
                     expression.RemoveAt(expression.Count - 1);
+                }
+
+                // Replace any text-code with mathematical symbols
+                for (int i = 0; i < expression.Count; i++)
+                {
+                    switch(expression[i].Type)
+                    {
+                        case TokenType.Is:
+                            if (i + 1 < expression.Count && expression[i + 1].Type == TokenType.Equal)
+                            {
+                                expression.RemoveAt(i);
+                                i--;
+                            }
+                            break;
+                    }
                 }
             }
             else if (expression.Count == 2)
@@ -415,7 +484,7 @@ namespace SvenskaInstruktioner
                 // Check for literals and therefore variables and functions
                 if (e.Type == TokenType.Literal)
                 {
-                    if (currentScope.TryLookup(e.Name, out Variable v))
+                    if (localScope.TryLookup(e.Name, out Variable v))
                     {
                         result = v.Value;
                         return v.Type;
@@ -443,7 +512,7 @@ namespace SvenskaInstruktioner
 
             result = 0;
             List<Token> newExpression;
-            Token expressionValue = null;
+            Token expressionValue = Token.Empty;
 
             for (int i = 0; i < orderOfOperation.Length; i++)
             {
@@ -468,16 +537,16 @@ namespace SvenskaInstruktioner
                         // Get LHS
                         List<Token> LHS = new List<Token>();
                         Token temp_t = Token.Empty;
-                        while (j - k >= 0 && (temp_t.Type == TokenType.Expression || temp_t.Type == TokenType.Separator || temp_t.Type == TokenType.Undefined))
+                        while (j - k >= 0 && (temp_t.Type == TokenType.Expression || temp_t.Type == TokenType.Parenthesis || temp_t.Type == TokenType.Undefined))
                         {
                             temp_t = expression[j - k];
                             if (TokenIsOperation(temp_t) && parenthisesDepth == 0) { k--; break; }
-                            else if (temp_t.Type == TokenType.Separator && (char)temp_t.Value == '(')
+                            else if (temp_t.Type == TokenType.Parenthesis && (char)temp_t.Value == '(')
                             {
                                 parenthisesDepth++;
                                 if (parenthisesDepth == 0) { k++; continue; } // Do not add token
                             }
-                            else if (temp_t.Type == TokenType.Separator && (char)temp_t.Value == ')')
+                            else if (temp_t.Type == TokenType.Parenthesis && (char)temp_t.Value == ')')
                             {
                                 parenthisesDepth--;
                                 if (parenthisesDepth == 0 - 1) { k++; continue; } // Do not add token
@@ -492,22 +561,22 @@ namespace SvenskaInstruktioner
                         parenthisesDepth = 0;
                         List<Token> RHS = new List<Token>();
                         temp_t = Token.Empty;
-                        while (j + k < expression.Count && (temp_t.Type == TokenType.Expression || temp_t.Type == TokenType.Separator || temp_t.Type == TokenType.Literal || temp_t.Type == TokenType.Undefined))
+                        while (j + k < expression.Count && (temp_t.Type == TokenType.Expression || temp_t.Type == TokenType.Parenthesis || temp_t.Type == TokenType.Literal || temp_t.Type == TokenType.Undefined))
                         {
                             temp_t = expression[j + k];
                             if (TokenIsOperation(temp_t) && parenthisesDepth == 0) { k--; break; }
-                            else if (temp_t.Type == TokenType.Separator && (char)temp_t.Value == '(') parenthisesDepth++;
-                            else if (temp_t.Type == TokenType.Separator && (char)temp_t.Value == ')') parenthisesDepth--;
+                            else if (temp_t.Type == TokenType.Parenthesis && (char)temp_t.Value == '(') parenthisesDepth++;
+                            else if (temp_t.Type == TokenType.Parenthesis && (char)temp_t.Value == ')') parenthisesDepth--;
                             RHS.Add(temp_t);
                             k++;
                         }
                         expressionEnd = j + k;
 
                         object LHS_Value;
-                        DataType LHS_TYPE = EvaluateExpression(LHS, out LHS_Value);
+                        DataType LHS_TYPE = EvaluateExpression(LHS, localScope, out LHS_Value);
 
                         object RHS_Value;
-                        DataType RHS_TYPE = EvaluateExpression(RHS, out RHS_Value);
+                        DataType RHS_TYPE = EvaluateExpression(RHS, localScope, out RHS_Value);
 
                         switch (operation)
                         {

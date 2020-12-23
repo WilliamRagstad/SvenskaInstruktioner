@@ -9,3 +9,16 @@ C:\Users\willi\odrive\Google Drive\Programming Projects\SvenskaInstruktioner\Sve
 C:\Users\willi\odrive\Google Drive\Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.dll
 C:\Users\willi\odrive\Google Drive\Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.pdb
 C:\Users\willi\odrive\Google Drive\Programming Projects\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.csprojAssemblyReference.cache
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.exe
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.deps.json
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.runtimeconfig.json
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.runtimeconfig.dev.json
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.dll
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\bin\Debug\netcoreapp3.1\SvenskaInstruktioner.pdb
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.csprojAssemblyReference.cache
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.AssemblyInfoInputs.cache
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.AssemblyInfo.cs
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.csproj.CoreCompileInputs.cache
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.dll
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.pdb
+C:\Users\ewr0327\odrive\Google Drive\Programming Projects\- C#\SvenskaInstruktioner\SvenskaInstruktioner\obj\Debug\netcoreapp3.1\SvenskaInstruktioner.genruntimeconfig.cache

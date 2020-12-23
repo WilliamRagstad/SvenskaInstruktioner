@@ -1,8 +1,9 @@
-﻿using System;
+﻿using SvenskaInstruktioner.Model;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SvenskaInstruktioner
+namespace SvenskaInstruktioner.Util
 {
     static class Functions
     {
@@ -43,11 +44,6 @@ namespace SvenskaInstruktioner
             PrintVariable(v, var_name, var_value);
             Console.WriteLine();
         }
-        public static void PrintVariable(Variable v, ConsoleColor? name, ConsoleColor? value)
-        {
-            WriteColor(v.Name.ToUpper() + " = ", name);
-            WriteColor(v.ValueToString(), value);
-        }
 
         public static void WriteLineMessage(int line, int column, string type, string message, ConsoleColor? color = null) => WriteMessage(line, column, type, message + '\n', color);
         public static void WriteMessage(int line, int column, string type, string message, ConsoleColor? color = null)
@@ -65,6 +61,22 @@ namespace SvenskaInstruktioner
         }
 
         public static void WriteLineColor(string text, ConsoleColor? color = null) => WriteColor(text + '\n', color);
+        #endregion
+
+        #region Formatting
+        public static void PrintVariable(Variable v, ConsoleColor? name, ConsoleColor? value)
+        {
+            WriteColor(v.Name.ToUpper() + " = ", name);
+            WriteColor(v.ValueToString(), value);
+        }
+
+        public static string TokenListToString(List<Token> list)
+        {
+            string result = "";
+            list.ForEach(t => result += t.ToString(false) + ' ');
+            return result.TrimEnd();
+        }
+
         #endregion
     }
 }

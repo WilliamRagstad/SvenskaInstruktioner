@@ -2,30 +2,31 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SvenskaInstruktioner
+namespace SvenskaInstruktioner.Model
 {
     enum TokenType
     {
         Undefined,
-        Assignment,
         Expression,
+        Boolean,
         String,
         Action,
         Literal,
         Comment,
+        Parenthesis,
+        CurlyBrackets,
         Separator,
         Equal,
-        Indent,
-        LineBreak,
+
+        WhiteSpace,
+
         And,
         Or,
-        To,
         Is,
         If,
         Then,
         Else,
-        BlockStart,
-        BlockEnd
+        Done,
     }
 
     class Token
@@ -47,13 +48,14 @@ namespace SvenskaInstruktioner
         public int Line { get; }
         public int Column { get; }
 
-        public override string ToString()
+        public override string ToString() => ToString(true);
+        public string ToString(bool alternatives)
         {
             string result = "";
             if (!string.IsNullOrEmpty(Name))
             {
                 result += Name;
-                if (Value != null && !Value.Equals(Name) && ValueType != typeof(Double) && ValueType != typeof(string)) // && ValueType != typeof(string)
+                if (alternatives && Value != null && !Value.Equals(Name) && ValueType != typeof(Double) && ValueType != typeof(string))
                 {
                     result += " | " + Value;
                 }
