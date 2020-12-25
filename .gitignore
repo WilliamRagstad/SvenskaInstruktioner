@@ -1,3 +1,8 @@
 
 bin/
 obj/
+obj/Debug/netcoreapp3.1/SvenskaInstruktioner.csprojAssemblyReference.cache
+obj/Debug/netcoreapp3.1/SvenskaInstruktioner.dll
+obj/Debug/netcoreapp3.1/SvenskaInstruktioner.pdb
+bin/Debug/netcoreapp3.1/SvenskaInstruktioner.dll
+bin/Debug/netcoreapp3.1/SvenskaInstruktioner.pdb
