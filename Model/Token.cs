@@ -44,18 +44,26 @@ namespace SvenskaInstruktioner.Model
         public string Name { get; }
         public TokenType Type { get; }
         public object Value { get; }
+        public string PreferredString()
+        {
+            switch(Type)
+            {
+                case TokenType.Boolean: return Name;
+                case TokenType.Equal: return Value.ToString();
+                default: return ToString();
+            }
+        }
         public Type ValueType { get; }
         public int Line { get; }
         public int Column { get; }
 
-        public override string ToString() => ToString(true);
-        public string ToString(bool alternatives)
+        public override string ToString()
         {
             string result = "";
             if (!string.IsNullOrEmpty(Name))
             {
                 result += Name;
-                if (alternatives && Value != null && !Value.Equals(Name) && ValueType != typeof(Double) && ValueType != typeof(string))
+                if (Value != null && !Value.Equals(Name) && ValueType != typeof(Double) && ValueType != typeof(string))
                 {
                     result += " | " + Value;
                 }
