@@ -73,7 +73,7 @@ namespace SvenskaInstruktioner.Util
         public static string TokenListToString(List<Token> list)
         {
             string result = "";
-            list.ForEach(t => result += t.ToString(false) + ' ');
+            list.ForEach(t => result += t.PreferredString() + " ");
             return result.TrimEnd();
         }
 
