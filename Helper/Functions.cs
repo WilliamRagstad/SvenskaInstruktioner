@@ -1,9 +1,8 @@
 ﻿using SvenskaInstruktioner.Model;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace SvenskaInstruktioner.Util
+namespace SvenskaInstruktioner.Helper
 {
     static class Functions
     {

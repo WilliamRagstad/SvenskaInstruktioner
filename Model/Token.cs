@@ -8,6 +8,7 @@ namespace SvenskaInstruktioner.Model
     {
         Undefined,
         Expression,
+        Operator,
         Boolean,
         String,
         Action,
@@ -19,6 +20,7 @@ namespace SvenskaInstruktioner.Model
         Equal,
 
         WhiteSpace,
+        NewLine,
 
         And,
         Or,
@@ -49,6 +51,9 @@ namespace SvenskaInstruktioner.Model
             switch(Type)
             {
                 case TokenType.Boolean: return Name;
+                case TokenType.Or:
+                case TokenType.And:
+                case TokenType.Expression:
                 case TokenType.Equal: return Value.ToString();
                 default: return ToString();
             }
