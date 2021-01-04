@@ -46,7 +46,7 @@ namespace SvenskaInstruktioner.Core
             ExitFlag f;
             try
             {
-                f = Execute(tokens, globalScope, debug);
+                f = Execute(tokens, globalScope, debug, true);
             }
             catch(FatalErrorException e)
             {
@@ -249,7 +249,7 @@ namespace SvenskaInstruktioner.Core
             return ast;
         }
 
-        private ExitFlag Execute(List<Token> tokens, BoundScope parentScope, bool debug = false)
+        private ExitFlag Execute(List<Token> tokens, BoundScope parentScope, bool debug, bool title)
         {
             BoundScope localScope = new BoundScope(parentScope);
             #region Local Functions
@@ -327,8 +327,11 @@ namespace SvenskaInstruktioner.Core
             if (debug)
             {
                 Console.WriteLine();
-                Functions.WriteTitle(ConsoleColor.Green, ConsoleColor.DarkGreen, "Execution Debugging");
-                Functions.WriteTableTitles(ConsoleColor.Green, ConsoleColor.DarkGreen, "Row:Col", "Action");
+                if (title)
+                {
+                    Functions.WriteTitle(ConsoleColor.Green, ConsoleColor.DarkGreen, "Execution Debugging");
+                    Functions.WriteTableTitles(ConsoleColor.Green, ConsoleColor.DarkGreen, "Row:Col", "Action");
+                }
             }
 
             Token ct = Token.Empty;
@@ -371,7 +374,7 @@ namespace SvenskaInstruktioner.Core
                             if (localScope.TryInvoke(literal, rawParameters, (Function f) =>
                             {
                                 if (debug) Functions.WriteMessage(literal.Line, literal.Column, "Invokation", "Calling Function " + f);
-                                Execute(f.Block, localScope, debug);
+                                Execute(f.Block, localScope, debug, false);
                             }, debug) && debug) Functions.WriteMessage(literal.Line, literal.Column, "Invokation", "Function was successfully invoked!");
                             else
                             {
@@ -435,7 +438,7 @@ namespace SvenskaInstruktioner.Core
                             (dataType == DataType.Boolean && (bool)result))
                         {
                             if (debug) Functions.WriteMessage(ct.Line, ct.Column, "Branching", $"Entering {branch}. '" + Functions.TokenListToString(statement) + "' was true.", ConsoleColor.Yellow);
-                            Execute(branch.Block, localScope, debug);
+                            Execute(branch.Block, localScope, debug, false);
                         }
                         else if (debug) Functions.WriteMessage(ct.Line, ct.Column, "Branching", $"Skipping {branch}. '" + Functions.TokenListToString(statement) + "' was false.", ConsoleColor.Yellow);
                     }
